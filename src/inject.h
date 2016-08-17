@@ -10,6 +10,12 @@
 #include <sys/user.h>
 
 
+#if __x86_64__
+	#define REGISTER_IP rip
+#else
+	#define REGISTER_IP eip
+#endif
+
 #define mypid_default (mypid_t){ 0, NULL }
 
 typedef struct mypid {

@@ -25,25 +25,25 @@ void ptrace_inject(const char *sc, size_t len, mypid_t pid, int nonsave){
 	if(!nonsave){
 		instructions_backup = xmalloc(len);
 		info("backup previously instructions\n");
-		pread(memfd, instructions_backup, len, regs.rip);
+		pread(memfd, instructions_backup, len, regs.REGISTER_IP);
 	}
 
 	info("writing shellcode on memory\n");
-	pwrite(memfd, sc, len, regs.rip);
+	pwrite(memfd, sc, len, regs.REGISTER_IP);
 	good("Shellcode inject !!!\n");
 
-	regs.rip += 2;
+	regs.REGISTER_IP += 2;
 	ptrace(PTRACE_SETREGS, pid.number, NULL, &regs);
 
 	if(!nonsave){
 		info("resuming application ...\n");
-		pwrite(memfd, "\xcc", 1, regs.rip+len-2+1);
+		pwrite(memfd, "\xcc", 1, regs.REGISTER_IP+len-1);
 
 		ptrace(PTRACE_CONT, pid.number, NULL, 0);
 		waitpid(pid.number, &status, 0);
 
 		info("restoring memory instructions\n");
-		pwrite(memfd, instructions_backup, len, regs.rip-2);
+		pwrite(memfd, instructions_backup, len, regs.REGISTER_IP-2);
 
 		xfree(instructions_backup);
 
