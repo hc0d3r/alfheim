@@ -8,12 +8,13 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/user.h>
+#include <sys/reg.h>
 
 
 #if __x86_64__
-	#define REGISTER_IP rip
+	#define IP RIP
 #else
-	#define REGISTER_IP eip
+	#define IP EIP
 #endif
 
 #define mypid_default (mypid_t){ 0, NULL }
