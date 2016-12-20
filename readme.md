@@ -20,6 +20,7 @@ Usage: ps-inject [OPTIONS] [PID]
    -f, --sc-file FILE       File contains shellcode bytes
    -s, --sc-string STRING   Shellcode string, e.g '\x90\x90\x90'
    -n, --no-restore         Not restore memory overwrited by shellcode
+   -p, --ptrace             Inject code using ptrace, instead of write in /proc/[pid]/mem
 
 ```
 
