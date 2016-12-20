@@ -12,11 +12,12 @@
 
 
 
-static const char short_options[]= "f:s:n";
+static const char short_options[]= "f:s:np";
 static const struct option long_options[]={
 	{"sc-file",           required_argument, NULL, 'f'},
 	{"sc-string",         required_argument, NULL, 's'},
 	{"no-restore",        no_argument,       NULL, 'n'},
+	{"ptrace",            no_argument,       NULL, 'p'},
 	{NULL, 0, NULL, 0}
 };
 
@@ -40,6 +41,9 @@ void parser_args(int *argc, char ***argv, inject_options_t *opt){
 
 			case 'n':
 				opt->restore = 0;
+				break;
+			case 'p':
+				opt->use_ptrace = 1;
 				break;
 
 			case '?':
@@ -76,7 +80,8 @@ void help(void){
 	printf("Usage: ps-inject [OPTIONS] [PID]\n\n");
 	printf("   -f, --sc-file FILE       File contains shellcode bytes\n");
 	printf("   -s, --sc-string STRING   Shellcode string, e.g '\\x90\\x90\\x90'\n");
-	printf("   -n, --no-restore         Not restore memory overwrited by shellcode\n\n");
+	printf("   -n, --no-restore         Not restore memory overwrited by shellcode\n");
+	printf("   -p, --ptrace             Inject code using ptrace, instead of write in /proc/[pid]/mem\n\n");
 	exit(0);
 }
 
@@ -90,14 +95,14 @@ int inject_code(inject_options_t *opts){
 	if(opts->filename){
 		info("checking file => %s\n", opts->filename);
 		memorymap(opts->filename, &maped_file);
-		ps_inject(maped_file.ptr, maped_file.size, opts->target_pid, opts->restore);
+		ps_inject(maped_file.ptr, maped_file.size, opts->target_pid, opts->restore, opts->use_ptrace);
 		memorymapfree(&maped_file);
 	}
 
 	if(opts->shellcode){
 		info("checking shellcode string...\n");
 		str2bytecode(opts->shellcode, &sc);
-		ps_inject(sc.ptr, sc.len, opts->target_pid, opts->restore);
+		ps_inject(sc.ptr, sc.len, opts->target_pid, opts->restore, opts->use_ptrace);
 		xfree(sc.ptr);
 	}
 

@@ -10,6 +10,7 @@
 #include <sys/user.h>
 #include <sys/reg.h>
 
+#define wordsize sizeof(long)
 
 #if __x86_64__
 	#define IP RIP
@@ -25,7 +26,7 @@ typedef struct mypid {
 } mypid_t;
 
 
-void ps_inject(const char *sc, size_t len, mypid_t pid, int save);
+void ps_inject(const char *sc, size_t len, mypid_t pid, int save, int use_ptrace);
 
 
 #endif

