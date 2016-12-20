@@ -21,7 +21,7 @@ inline long setip(pid_t pid, long ip){
 	return ptrace(PTRACE_POKEUSER, pid, sizeof(long)*IP, ip);
 }
 
-void ps_inject(const char *sc, size_t len, mypid_t pid, int nonsave){
+void ps_inject(const char *sc, size_t len, mypid_t pid, int save){
 	char *instructions_backup, memfile[100];
 	int status, memfd;
 	long instruction_point;
@@ -38,7 +38,7 @@ void ps_inject(const char *sc, size_t len, mypid_t pid, int nonsave){
 	memfd = xopen(memfile, O_RDWR);
 	good("sucess\n");
 
-	if(!nonsave){
+	if(save){
 		instructions_backup = xmalloc(len);
 		info("backup previously instructions\n");
 		pread(memfd, instructions_backup, len+1, instruction_point);
@@ -48,7 +48,7 @@ void ps_inject(const char *sc, size_t len, mypid_t pid, int nonsave){
 	pwrite(memfd, sc, len, instruction_point);
 	good("Shellcode inject !!!\n");
 
-	if(!nonsave){
+	if(save){
 		info("resuming application ...\n");
 		pwrite(memfd, "\xcc", 1, instruction_point+len);
 

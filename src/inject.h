@@ -25,7 +25,7 @@ typedef struct mypid {
 } mypid_t;
 
 
-void ps_inject(const char *sc, size_t len, mypid_t pid, int nonsave);
+void ps_inject(const char *sc, size_t len, mypid_t pid, int save);
 
 
 #endif

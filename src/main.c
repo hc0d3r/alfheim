@@ -39,7 +39,7 @@ void parser_args(int *argc, char ***argv, inject_options_t *opt){
 				break;
 
 			case 'n':
-				opt->no_restore = 1;
+				opt->restore = 0;
 				break;
 
 			case '?':
@@ -90,14 +90,14 @@ int inject_code(inject_options_t *opts){
 	if(opts->filename){
 		info("checking file => %s\n", opts->filename);
 		memorymap(opts->filename, &maped_file);
-		ps_inject(maped_file.ptr, maped_file.size, opts->target_pid, opts->no_restore);
+		ps_inject(maped_file.ptr, maped_file.size, opts->target_pid, opts->restore);
 		memorymapfree(&maped_file);
 	}
 
 	if(opts->shellcode){
 		info("checking shellcode string...\n");
 		str2bytecode(opts->shellcode, &sc);
-		ps_inject(sc.ptr, sc.len, opts->target_pid, opts->no_restore);
+		ps_inject(sc.ptr, sc.len, opts->target_pid, opts->restore);
 		xfree(sc.ptr);
 	}
 
