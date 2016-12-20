@@ -82,7 +82,7 @@ void ps_inject(const char *sc, size_t len, mypid_t pid, int save, int use_ptrace
 	}
 
 	if(save){
-		instructions_backup = xmalloc(len);
+		instructions_backup = xmalloc(len+1);
 		info("backup previously instructions\n");
 
 		(use_ptrace) ? 	ptrace_read(pid.number, instruction_point, instructions_backup, len+1) :
