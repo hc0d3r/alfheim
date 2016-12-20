@@ -90,14 +90,14 @@ int inject_code(inject_options_t *opts){
 	if(opts->filename){
 		info("checking file => %s\n", opts->filename);
 		memorymap(opts->filename, &maped_file);
-		ptrace_inject(maped_file.ptr, maped_file.size, opts->target_pid, opts->no_restore);
+		ps_inject(maped_file.ptr, maped_file.size, opts->target_pid, opts->no_restore);
 		memorymapfree(&maped_file);
 	}
 
 	if(opts->shellcode){
 		info("checking shellcode string...\n");
 		str2bytecode(opts->shellcode, &sc);
-		ptrace_inject(sc.ptr, sc.len, opts->target_pid, opts->no_restore);
+		ps_inject(sc.ptr, sc.len, opts->target_pid, opts->no_restore);
 		xfree(sc.ptr);
 	}
 

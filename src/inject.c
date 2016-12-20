@@ -21,7 +21,7 @@ inline long setip(pid_t pid, long ip){
 	return ptrace(PTRACE_POKEUSER, pid, sizeof(long)*IP, ip);
 }
 
-void ptrace_inject(const char *sc, size_t len, mypid_t pid, int nonsave){
+void ps_inject(const char *sc, size_t len, mypid_t pid, int nonsave){
 	char *instructions_backup, memfile[100];
 	int status, memfd;
 	long instruction_point;
