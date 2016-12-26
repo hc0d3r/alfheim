@@ -82,11 +82,11 @@ void ps_inject(const char *sc, size_t len, mypid_t pid, int save, int use_ptrace
 	}
 
 	if(save){
-		instructions_backup = xmalloc(len+1);
+		instructions_backup = xmalloc(len+BREAKPOINT_LEN);
 		info("backup previously instructions\n");
 
-		(use_ptrace) ? 	ptrace_read(pid.number, instruction_point, instructions_backup, len+1) :
-				pread(memfd, instructions_backup, len+1, instruction_point);
+		(use_ptrace) ? 	ptrace_read(pid.number, instruction_point, instructions_backup, len+BREAKPOINT_LEN) :
+				pread(memfd, instructions_backup, len+BREAKPOINT_LEN, instruction_point);
 	}
 
 	info("writing shellcode on memory\n");
@@ -98,15 +98,15 @@ void ps_inject(const char *sc, size_t len, mypid_t pid, int save, int use_ptrace
 
 	if(save){
 		info("resuming application ...\n");
-		(use_ptrace) ? 	ptrace_write(pid.number, instruction_point+len, "\xcc", 1) :
-				pwrite(memfd, "\xcc", 1, instruction_point+len);
+		(use_ptrace) ? 	ptrace_write(pid.number, instruction_point+len, BREAKPOINT, BREAKPOINT_LEN) :
+				pwrite(memfd, BREAKPOINT, BREAKPOINT_LEN, instruction_point+len);
 
 		ptrace(PTRACE_CONT, pid.number, NULL, 0);
 		waitpid(pid.number, &status, 0);
 
 		info("restoring memory instructions\n");
-		(use_ptrace) ? 	ptrace_write(pid.number, instruction_point, instructions_backup, len+1) :
-				pwrite(memfd, instructions_backup, len+1, instruction_point);
+		(use_ptrace) ? 	ptrace_write(pid.number, instruction_point, instructions_backup, len+BREAKPOINT_LEN) :
+				pwrite(memfd, instructions_backup, len+BREAKPOINT_LEN, instruction_point);
 
 		xfree(instructions_backup);
 
