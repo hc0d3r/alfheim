@@ -52,7 +52,6 @@ void ptrace_read(pid_t pid, long addr, void *output, size_t n){
 
 	for(i=0; i<n; i+=wordsize){
 		bytes = ptrace(PTRACE_PEEKDATA, pid, addr+i, 0L);
-		printf("ptrace_read: %zx\n", bytes);
 		if((i+wordsize) > n){
 			memcpy((output+i), &bytes, n-i);
 		} else {
