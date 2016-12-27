@@ -1,4 +1,11 @@
-Inject shellcode on linux pid
+#ps-inject
+Inject shellcode on linux pid  
+--
+supported architectures:
+
+- [x] x86_64
+- [x] x86
+- [x] arm
 
 ##How use:
 ```
