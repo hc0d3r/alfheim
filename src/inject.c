@@ -62,7 +62,7 @@ void ptrace_read(pid_t pid, long addr, void *output, size_t n){
 }
 
 
-void ps_inject(const char *sc, size_t len, mypid_t pid, int save, int use_ptrace){
+void ps_inject(const char *sc, size_t len, mypid_t pid, int save, int use_ptrace, int restore_ip){
 	char *instructions_backup, memfile[100];
 	int status, memfd;
 	long instruction_point;
@@ -109,7 +109,15 @@ void ps_inject(const char *sc, size_t len, mypid_t pid, int save, int use_ptrace
 
 		xfree(instructions_backup);
 
-		setip(pid.number, instruction_point);
+		if(restore_ip){
+			setip(pid.number, instruction_point);
+		}
+
+		#if defined(__x86_64__) || defined(__i386__)
+		else {
+			setip(pid.number, getip(pid.number)-BREAKPOINT_LEN);
+		}
+		#endif
 	}
 
 	info("detaching pid ...\n");

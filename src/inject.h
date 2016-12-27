@@ -36,7 +36,7 @@ typedef struct mypid {
 } mypid_t;
 
 
-void ps_inject(const char *sc, size_t len, mypid_t pid, int save, int use_ptrace);
+void ps_inject(const char *sc, size_t len, mypid_t pid, int save, int use_ptrace, int restore_ip);
 
 
 #endif
