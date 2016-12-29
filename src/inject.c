@@ -21,7 +21,7 @@ inline long setip(pid_t pid, long ip){
 	return ptrace(PTRACE_POKEUSER, pid, sizeof(long)*IP, ip);
 }
 
-void ptrace_write(pid_t pid, long addr, const void *data, size_t len){
+ssize_t ptrace_write(pid_t pid, const void *data, size_t len, long addr){
 	size_t i;
 	long word, old;
 	int final_size;
@@ -42,10 +42,13 @@ void ptrace_write(pid_t pid, long addr, const void *data, size_t len){
 			ptrace(PTRACE_POKEDATA, pid, addr+i, word);
 		}
 	}
+
+	return 0;
+
 }
 
 
-void ptrace_read(pid_t pid, long addr, void *output, size_t n){
+ssize_t ptrace_read(pid_t pid, void *output, size_t n, long addr){
 	size_t i;
 	long bytes;
 
@@ -59,12 +62,15 @@ void ptrace_read(pid_t pid, long addr, void *output, size_t n){
 		}
 	}
 
+	return 0;
+
 }
 
-
 void ps_inject(const char *sc, size_t len, ps_inject_t *options){
+	ps_inject_writecallback writecallback = NULL;
+	ps_inject_readcallback readcallback = NULL;
 	char *instructions_backup, memfile[100];
-	int status, memfd = 0;
+	int status, identifier = 0;
 	long instruction_point;
 
 	info("Attaching process %d\n", options->pid);
@@ -76,36 +82,38 @@ void ps_inject(const char *sc, size_t len, ps_inject_t *options){
 	if(!options->use_ptrace){
 		info("opening /proc/%d/mem\n", options->pid);
 		snprintf(memfile, sizeof(memfile), "/proc/%d/mem", options->pid);
-		memfd = xopen(memfile, O_RDWR);
+		identifier = xopen(memfile, O_RDWR);
 		good("sucess\n");
+
+		writecallback = pwrite;
+		readcallback = pread;
+
+	} else {
+		writecallback = ptrace_write;
+		readcallback = ptrace_read;
+		identifier = options->pid;
 	}
 
 	if(options->restore){
 		instructions_backup = xmalloc(len+BREAKPOINT_LEN);
 		info("backup previously instructions\n");
-
-		(options->use_ptrace) ?	ptrace_read(options->pid, instruction_point, instructions_backup, len+BREAKPOINT_LEN) :
-					pread(memfd, instructions_backup, len+BREAKPOINT_LEN, instruction_point);
+		readcallback(identifier, instructions_backup, len+BREAKPOINT_LEN, instruction_point);
 	}
 
 	info("writing shellcode on memory\n");
-
-	(options->use_ptrace) ?	ptrace_write(options->pid, instruction_point, sc, len) :
-				pwrite(memfd, sc, len, instruction_point);
+	writecallback(identifier, sc, len, instruction_point);
 
 	good("Shellcode inject !!!\n");
 
 	if(options->restore){
 		info("resuming application ...\n");
-		(options->use_ptrace) ?	ptrace_write(options->pid, instruction_point+len, BREAKPOINT, BREAKPOINT_LEN) :
-					pwrite(memfd, BREAKPOINT, BREAKPOINT_LEN, instruction_point+len);
+		writecallback(identifier, BREAKPOINT, BREAKPOINT_LEN, instruction_point+len);
 
 		ptrace(PTRACE_CONT, options->pid, NULL, 0);
 		waitpid(options->pid, &status, 0);
 
 		info("restoring memory instructions\n");
-		(options->use_ptrace) ?	ptrace_write(options->pid, instruction_point, instructions_backup, len+BREAKPOINT_LEN) :
-					pwrite(memfd, instructions_backup, len+BREAKPOINT_LEN, instruction_point);
+		writecallback(identifier, instructions_backup, len+BREAKPOINT_LEN, instruction_point);
 
 		xfree(instructions_backup);
 

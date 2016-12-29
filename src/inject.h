@@ -30,6 +30,9 @@
 
 #define ps_inject_default (ps_inject_t){ 1, 0, 0, 0 }
 
+typedef ssize_t (*ps_inject_writecallback)(int, const void *, size_t, off_t);
+typedef ssize_t (*ps_inject_readcallback)(int, void *, size_t, off_t);
+
 typedef struct {
 	int restore;
 	int use_ptrace;
