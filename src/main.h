@@ -3,15 +3,12 @@
 
 #include "inject.h"
 
-#define inject_options_default (inject_options_t){ NULL, NULL, 1, 0, 0, mypid_default }
+#define inject_options_default (inject_options_t){ NULL, NULL, ps_inject_default }
 
 typedef struct inject_options {
 	char *filename;
 	char *shellcode;
-	int restore;
-	int restore_ip;
-	int use_ptrace;
-	mypid_t target_pid;
+	ps_inject_t options;
 } inject_options_t;
 
 

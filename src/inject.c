@@ -62,66 +62,66 @@ void ptrace_read(pid_t pid, long addr, void *output, size_t n){
 }
 
 
-void ps_inject(const char *sc, size_t len, mypid_t pid, int save, int use_ptrace, int restore_ip){
+void ps_inject(const char *sc, size_t len, ps_inject_t *options){
 	char *instructions_backup, memfile[100];
-	int status, memfd;
+	int status, memfd = 0;
 	long instruction_point;
 
-	info("Attaching process %s\n", pid.str);
-	ptrace_attach(pid.number);
+	info("Attaching process %d\n", options->pid);
+	ptrace_attach(options->pid);
 	good("process attached\n");
 
-	instruction_point = getip(pid.number);
+	instruction_point = getip(options->pid);
 
-	if(!use_ptrace){
-		info("opening /proc/%s/mem\n", pid.str);
-		snprintf(memfile, sizeof(memfile), "/proc/%s/mem", pid.str);
+	if(!options->use_ptrace){
+		info("opening /proc/%d/mem\n", options->pid);
+		snprintf(memfile, sizeof(memfile), "/proc/%d/mem", options->pid);
 		memfd = xopen(memfile, O_RDWR);
 		good("sucess\n");
 	}
 
-	if(save){
+	if(options->restore){
 		instructions_backup = xmalloc(len+BREAKPOINT_LEN);
 		info("backup previously instructions\n");
 
-		(use_ptrace) ? 	ptrace_read(pid.number, instruction_point, instructions_backup, len+BREAKPOINT_LEN) :
-				pread(memfd, instructions_backup, len+BREAKPOINT_LEN, instruction_point);
+		(options->use_ptrace) ?	ptrace_read(options->pid, instruction_point, instructions_backup, len+BREAKPOINT_LEN) :
+					pread(memfd, instructions_backup, len+BREAKPOINT_LEN, instruction_point);
 	}
 
 	info("writing shellcode on memory\n");
 
-	(use_ptrace) ? 	ptrace_write(pid.number, instruction_point, sc, len) :
-			pwrite(memfd, sc, len, instruction_point);
+	(options->use_ptrace) ?	ptrace_write(options->pid, instruction_point, sc, len) :
+				pwrite(memfd, sc, len, instruction_point);
 
 	good("Shellcode inject !!!\n");
 
-	if(save){
+	if(options->restore){
 		info("resuming application ...\n");
-		(use_ptrace) ? 	ptrace_write(pid.number, instruction_point+len, BREAKPOINT, BREAKPOINT_LEN) :
-				pwrite(memfd, BREAKPOINT, BREAKPOINT_LEN, instruction_point+len);
+		(options->use_ptrace) ?	ptrace_write(options->pid, instruction_point+len, BREAKPOINT, BREAKPOINT_LEN) :
+					pwrite(memfd, BREAKPOINT, BREAKPOINT_LEN, instruction_point+len);
 
-		ptrace(PTRACE_CONT, pid.number, NULL, 0);
-		waitpid(pid.number, &status, 0);
+		ptrace(PTRACE_CONT, options->pid, NULL, 0);
+		waitpid(options->pid, &status, 0);
 
 		info("restoring memory instructions\n");
-		(use_ptrace) ? 	ptrace_write(pid.number, instruction_point, instructions_backup, len+BREAKPOINT_LEN) :
-				pwrite(memfd, instructions_backup, len+BREAKPOINT_LEN, instruction_point);
+		(options->use_ptrace) ?	ptrace_write(options->pid, instruction_point, instructions_backup, len+BREAKPOINT_LEN) :
+					pwrite(memfd, instructions_backup, len+BREAKPOINT_LEN, instruction_point);
 
 		xfree(instructions_backup);
 
-		if(restore_ip){
-			setip(pid.number, instruction_point);
+		if(options->restore_ip){
+			setip(options->pid, instruction_point);
 		}
 
 		#if defined(__x86_64__) || defined(__i386__)
 		else {
-			setip(pid.number, getip(pid.number)-BREAKPOINT_LEN);
+			setip(options->pid, getip(options->pid)-BREAKPOINT_LEN);
 		}
 		#endif
 	}
 
 	info("detaching pid ...\n");
-	ptrace(PTRACE_DETACH, pid.number, NULL, NULL);
+	ptrace(PTRACE_DETACH, options->pid, NULL, NULL);
 
 
 }

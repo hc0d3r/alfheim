@@ -28,15 +28,17 @@
 	#error unsupported architeture
 #endif
 
-#define mypid_default (mypid_t){ 0, NULL }
+#define ps_inject_default (ps_inject_t){ 1, 0, 0, 0 }
 
-typedef struct mypid {
-	pid_t number;
-	char *str;
-} mypid_t;
+typedef struct {
+	int restore;
+	int use_ptrace;
+	int restore_ip;
+	pid_t pid;
+} ps_inject_t;
 
 
-void ps_inject(const char *sc, size_t len, mypid_t pid, int save, int use_ptrace, int restore_ip);
+void ps_inject(const char *sc, size_t len, ps_inject_t *options);
 
 
 #endif

@@ -41,13 +41,13 @@ void parser_args(int *argc, char ***argv, inject_options_t *opt){
 				break;
 
 			case 'n':
-				opt->restore = 0;
+				opt->options.restore = 0;
 				break;
 			case 'p':
-				opt->use_ptrace = 1;
+				opt->options.use_ptrace = 1;
 				break;
 			case 'r':
-				opt->restore_ip = 1;
+				opt->options.restore_ip = 1;
 				break;
 
 			case '?':
@@ -65,8 +65,8 @@ void parser_args(int *argc, char ***argv, inject_options_t *opt){
 		help();
 	}
 
-	opt->target_pid.number = parser_pid( (*argv)[optind] );
-	opt->target_pid.str = (*argv)[optind];
+	opt->options.pid = parser_pid( (*argv)[optind] );
+
 }
 
 void banner(void){
@@ -100,14 +100,14 @@ int inject_code(inject_options_t *opts){
 	if(opts->filename){
 		info("checking file => %s\n", opts->filename);
 		memorymap(opts->filename, &maped_file);
-		ps_inject(maped_file.ptr, maped_file.size, opts->target_pid, opts->restore, opts->use_ptrace, opts->restore_ip);
+		ps_inject(maped_file.ptr, maped_file.size, &(opts->options));
 		memorymapfree(&maped_file);
 	}
 
 	if(opts->shellcode){
 		info("checking shellcode string...\n");
 		str2bytecode(opts->shellcode, &sc);
-		ps_inject(sc.ptr, sc.len, opts->target_pid, opts->restore, opts->use_ptrace, opts->restore_ip);
+		ps_inject(sc.ptr, sc.len, &(opts->options));
 		xfree(sc.ptr);
 	}
 
