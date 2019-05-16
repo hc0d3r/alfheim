@@ -23,51 +23,6 @@ inline long setip(pid_t pid, long ip){
     return ptrace(PTRACE_POKEUSER, pid, sizeof(long)*IP, ip);
 }
 
-ssize_t ptrace_write(pid_t pid, const void *data, size_t len, long addr){
-    size_t i;
-    long word, old;
-    int final_size;
-
-    for(i=0; i<len; i+=wordsize){
-        if((i+wordsize) > len){
-            final_size = len-i;
-            word = 0;
-
-            memcpy(&word, data+i, final_size);
-            old = ptrace(PTRACE_PEEKDATA, pid, addr+i, 0L);
-            old &= (unsigned long)-1 << (8*final_size);
-            word |= old;
-            ptrace(PTRACE_POKEDATA, pid, addr+i, word);
-
-        } else {
-            word = *(long *)(data+i);
-            ptrace(PTRACE_POKEDATA, pid, addr+i, word);
-        }
-    }
-
-    return 0;
-
-}
-
-
-ssize_t ptrace_read(pid_t pid, void *output, size_t n, long addr){
-    size_t i;
-    long bytes;
-
-
-    for(i=0; i<n; i+=wordsize){
-        bytes = ptrace(PTRACE_PEEKDATA, pid, addr+i, 0L);
-        if((i+wordsize) > n){
-            memcpy((output+i), &bytes, n-i);
-        } else {
-            *(long *)(output+i) = bytes;
-        }
-    }
-
-    return 0;
-
-}
-
 void ps_inject(const char *sc, size_t len, ps_inject_t *options){
     char *instructions_backup;
     long instruction_point;
