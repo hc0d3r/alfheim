@@ -1,4 +1,3 @@
-CC=gcc
 CFLAGS+=-Wall -Wextra -O3
 SRCDIR=src
 OBJDIR=lib
@@ -14,8 +13,8 @@ ps-inject: $(OBJS)
 	$(CC) $(CFLAGS) -o ps-inject $(OBJS)
 
 
-$(OBJDIR)/%.o: $(SRCDIR)/%.c
+$(OBJDIR)/%.o: $(SRCDIR)/%.c $(SRCDIR)/%.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean:
-	rm -f $(OBJS)
+	rm -f $(OBJS) ps-inject
