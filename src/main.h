@@ -11,7 +11,6 @@ typedef struct inject_options {
     ps_inject_t options;
 } inject_options_t;
 
-
 void parser_args(int argc, char **argv, inject_options_t *opt);
 void banner(void);
 void help(void);

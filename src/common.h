@@ -7,7 +7,6 @@
 #include <stdio.h>
 #include <unistd.h>
 
-
 /* common macros */
 
 #define CYAN  "\e[0;36m"

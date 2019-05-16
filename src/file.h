@@ -6,9 +6,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-
 off_t getfdsize(int fd);
 int xopen(const char *filename, int mode);
-
 
 #endif

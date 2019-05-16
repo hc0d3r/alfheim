@@ -6,7 +6,7 @@ readcb readcallback = ignotum_mem_read;
 void ptrace_attach(pid_t pid){
     int status;
 
-    if( ptrace(PTRACE_ATTACH, pid, NULL, NULL) ==  - 1){
+    if(ptrace(PTRACE_ATTACH, pid, NULL, NULL) == -1){
         bad("failed to attach pid %d | %s\n", pid, strerror(errno));
         exit(1);
     }
@@ -28,7 +28,7 @@ void ps_inject(const char *sc, size_t len, ps_inject_t *options){
     long ip;
     int status;
 
-    info("Attaching process %d\n", options->pid);
+    info("attaching process %d\n", options->pid);
     ptrace_attach(options->pid);
     good("process attached\n");
 
@@ -43,7 +43,7 @@ void ps_inject(const char *sc, size_t len, ps_inject_t *options){
     info("writing shellcode on memory\n");
     writecallback(options->pid, sc, len, ip);
 
-    good("Shellcode inject !!!\n");
+    good("shellcode inject !!!\n");
 
     if(options->restore){
         info("resuming application ...\n");

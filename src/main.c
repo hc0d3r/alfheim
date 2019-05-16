@@ -80,9 +80,6 @@ void help(void){
     exit(0);
 }
 
-
-
-
 int inject_code(inject_options_t *opts){
     maped_file_t maped_file = maped_file_default;
     dynptr_t sc;
