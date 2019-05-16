@@ -7,6 +7,8 @@ OBJS =		$(OBJDIR)/file.o \
 		$(OBJDIR)/str.o \
 		$(OBJDIR)/mem.o \
 		$(OBJDIR)/inject.o \
+		$(OBJDIR)/ignotum_ptrace.o \
+		$(OBJDIR)/ignotum_mem.o \
 		$(OBJDIR)/main.o
 
 ps-inject: $(OBJS)

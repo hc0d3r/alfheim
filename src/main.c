@@ -97,6 +97,11 @@ int inject_code(inject_options_t *opts){
     maped_file_t maped_file = maped_file_default;
     bytecode_string_t sc = bytecode_string_default;
 
+    if(opts->options.use_ptrace){
+        writecallback = ignotum_ptrace_write;
+        readcallback = ignotum_ptrace_read;
+    }
+
     if(opts->filename){
         info("checking file => %s\n", opts->filename);
         memorymap(opts->filename, &maped_file);

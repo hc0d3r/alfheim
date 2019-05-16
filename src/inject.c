@@ -1,5 +1,7 @@
 #include "inject.h"
 
+writecb writecallback = ignotum_mem_write;
+readcb readcallback = ignotum_mem_read;
 
 void ptrace_attach(pid_t pid){
     int status;
@@ -67,11 +69,9 @@ ssize_t ptrace_read(pid_t pid, void *output, size_t n, long addr){
 }
 
 void ps_inject(const char *sc, size_t len, ps_inject_t *options){
-    ps_inject_writecallback writecallback = NULL;
-    ps_inject_readcallback readcallback = NULL;
-    char *instructions_backup, memfile[100];
-    int status, identifier = 0;
+    char *instructions_backup;
     long instruction_point;
+    int status;
 
     info("Attaching process %d\n", options->pid);
     ptrace_attach(options->pid);
@@ -79,41 +79,26 @@ void ps_inject(const char *sc, size_t len, ps_inject_t *options){
 
     instruction_point = getip(options->pid);
 
-    if(!options->use_ptrace){
-        info("opening /proc/%d/mem\n", options->pid);
-        snprintf(memfile, sizeof(memfile), "/proc/%d/mem", options->pid);
-        identifier = xopen(memfile, O_RDWR);
-        good("sucess\n");
-
-        writecallback = pwrite;
-        readcallback = pread;
-
-    } else {
-        writecallback = ptrace_write;
-        readcallback = ptrace_read;
-        identifier = options->pid;
-    }
-
     if(options->restore){
         instructions_backup = xmalloc(len+BREAKPOINT_LEN);
         info("backup previously instructions\n");
-        readcallback(identifier, instructions_backup, len+BREAKPOINT_LEN, instruction_point);
+        readcallback(options->pid, instructions_backup, len+BREAKPOINT_LEN, instruction_point);
     }
 
     info("writing shellcode on memory\n");
-    writecallback(identifier, sc, len, instruction_point);
+    writecallback(options->pid, sc, len, instruction_point);
 
     good("Shellcode inject !!!\n");
 
     if(options->restore){
         info("resuming application ...\n");
-        writecallback(identifier, BREAKPOINT, BREAKPOINT_LEN, instruction_point+len);
+        writecallback(options->pid, BREAKPOINT, BREAKPOINT_LEN, instruction_point+len);
 
         ptrace(PTRACE_CONT, options->pid, NULL, 0);
         waitpid(options->pid, &status, 0);
 
         info("restoring memory instructions\n");
-        writecallback(identifier, instructions_backup, len+BREAKPOINT_LEN, instruction_point);
+        writecallback(options->pid, instructions_backup, len+BREAKPOINT_LEN, instruction_point);
 
         xfree(instructions_backup);
 
@@ -129,7 +114,7 @@ void ps_inject(const char *sc, size_t len, ps_inject_t *options){
     }
 
     info("detaching pid ...\n");
-    ptrace(PTRACE_DETACH, options->pid, NULL, NULL);
+    ptrace(PTRACE_DETACH, options->pid, NULL, 0);
 
 
 }

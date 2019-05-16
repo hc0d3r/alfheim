@@ -1,12 +1,16 @@
 #ifndef __INJECT_H__
 #define __INJECT_H__
 
-#include "common.h"
-#include "file.h"
-#include "mem.h"
 #include <sys/ptrace.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+
+#include "ignotum_ptrace.h"
+#include "ignotum_mem.h"
+
+#include "common.h"
+#include "file.h"
+#include "mem.h"
 
 #define wordsize sizeof(long)
 
@@ -30,8 +34,12 @@
 
 #define ps_inject_default (ps_inject_t){ 1, 0, 0, 0 }
 
-typedef ssize_t (*ps_inject_writecallback)(int, const void *, size_t, off_t);
-typedef ssize_t (*ps_inject_readcallback)(int, void *, size_t, off_t);
+typedef ssize_t (*writecb)(int, const void *, size_t, off_t);
+typedef ssize_t (*readcb)(int, void *, size_t, off_t);
+
+extern writecb writecallback;
+extern readcb readcallback;
+
 
 typedef struct {
     int restore;
