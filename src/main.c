@@ -95,7 +95,7 @@ void help(void){
 
 int inject_code(inject_options_t *opts){
     maped_file_t maped_file = maped_file_default;
-    bytecode_string_t sc = bytecode_string_default;
+    dynptr_t sc;
 
     if(opts->options.use_ptrace){
         writecallback = ignotum_ptrace_write;

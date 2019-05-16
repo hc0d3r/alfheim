@@ -6,14 +6,11 @@
 #include <ctype.h>
 #include <limits.h>
 
-#define bytecode_string_default (bytecode_string_t){ NULL, 0 }
-
-typedef struct bytecode_string {
+typedef struct {
     char *ptr;
     size_t len;
-} bytecode_string_t;
+} dynptr_t;
 
-
-void str2bytecode(const char *shellcode, bytecode_string_t *code);
+void str2bytecode(const char *shellcode, dynptr_t *code);
 
 #endif
