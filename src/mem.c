@@ -42,10 +42,3 @@ void *xmalloc(size_t size){
 
     return ptr;
 }
-
-void __safefree(void **pp){
-    if(pp != NULL){
-        free(*pp);
-        *pp = NULL;
-    }
-}

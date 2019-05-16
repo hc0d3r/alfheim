@@ -100,7 +100,7 @@ int inject_code(inject_options_t *opts){
         info("checking shellcode string...\n");
         str2bytecode(opts->shellcode, &sc);
         ps_inject(sc.ptr, sc.len, &(opts->options));
-        xfree(sc.ptr);
+        free(sc.ptr);
     }
 
     return 0;

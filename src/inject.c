@@ -54,8 +54,7 @@ void ps_inject(const char *sc, size_t len, ps_inject_t *options){
 
         info("restoring memory instructions\n");
         writecallback(options->pid, backup, len+BREAKPOINT_LEN, ip);
-
-        xfree(backup);
+        free(backup);
 
         if(options->restore_ip){
             setip(options->pid, ip);

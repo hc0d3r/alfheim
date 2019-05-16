@@ -6,7 +6,6 @@
 #include <sys/mman.h>
 
 #define maped_file_default (maped_file_t){ NULL, 0, 0 };
-#define xfree(x) __safefree((void **)&x)
 
 typedef struct maped_file {
     char *ptr;
@@ -17,7 +16,6 @@ typedef struct maped_file {
 void memorymap(const char *filename, maped_file_t *mfile);
 void memorymapfree(maped_file_t *mfile);
 void *xmalloc(size_t size);
-void __safefree(void **pp);
 
 
 #endif
