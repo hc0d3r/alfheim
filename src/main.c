@@ -81,12 +81,15 @@ void banner(void){
 }
 
 void help(void){
-    printf("Usage: ps-inject [OPTIONS] [PID]\n\n");
-    printf("   -f, --sc-file FILE       File contains shellcode bytes\n");
-    printf("   -s, --sc-string STRING   Shellcode string, e.g '\\x90\\x90\\x90'\n");
-    printf("   -n, --no-restore         Not restore memory overwrited by shellcode\n");
-    printf("   -r, --restore-ip         Restore instruction point\n");
-    printf("   -p, --ptrace             Inject code using ptrace, instead of write in /proc/[pid]/mem\n\n");
+    static const char help_menu[]=
+        "Usage: ps-inject [OPTIONS] [PID]\n\n"
+        "   -f, --sc-file FILE       File contains shellcode bytes\n"
+        "   -s, --sc-string STRING   Shellcode string, e.g '\\x90\\x90\\x90'\n"
+        "   -n, --no-restore         Not restore memory overwrited by shellcode\n"
+        "   -r, --restore-ip         Restore instruction point\n"
+        "   -p, --ptrace             Inject code using ptrace, instead of write in /proc/[pid]/mem\n";
+
+    puts(help_menu);
     exit(0);
 }
 
