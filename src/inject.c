@@ -37,7 +37,7 @@ void ps_inject(const char *sc, size_t len, ps_inject_t *options){
     if(options->restore){
         backup = xmalloc(len+BREAKPOINT_LEN);
         info("backup previously instructions\n");
-        readcallback(options->pid, ip, len+BREAKPOINT_LEN, ip);
+        readcallback(options->pid, backup, len+BREAKPOINT_LEN, ip);
     }
 
     info("writing shellcode on memory\n");
