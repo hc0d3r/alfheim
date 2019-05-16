@@ -14,7 +14,6 @@ typedef struct bytecode_string {
 } bytecode_string_t;
 
 
-pid_t parser_pid(const char *strpid);
 void str2bytecode(const char *shellcode, bytecode_string_t *code);
 
 #endif

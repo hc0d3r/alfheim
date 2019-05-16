@@ -65,7 +65,7 @@ void parser_args(int *argc, char ***argv, inject_options_t *opt){
         help();
     }
 
-    opt->options.pid = parser_pid( (*argv)[optind] );
+    opt->options.pid = atoi((*argv)[optind]);
 
 }
 

@@ -19,42 +19,6 @@ char tohex(char x){
     return x;
 }
 
-/* string to pid_t(int) */
-pid_t parser_pid(const char *strpid){
-    pid_t ret = 0;
-    char aux;
-    int i;
-
-
-    for(i=0; strpid[i]; i++){
-        aux = strpid[i];
-
-        if(aux < '0' || aux > '9'){
-            bad("%s not is a valid pid number\n", strpid);
-            exit(1);
-        }
-
-
-        if(ret > INT_MAX/10){
-            bad("%s is too big ...\n", strpid);
-            exit(1);
-        }
-
-        ret *= 10;
-        aux &= 0b1111;
-
-        if(ret > INT_MAX-aux){
-            bad("%s is too big ...\n", strpid);
-            exit(1);
-        }
-
-        ret += aux;
-
-    }
-
-    return ret;
-}
-
 void str2bytecode(const char *shellcode, bytecode_string_t *code){
     size_t sc_size = strlen(shellcode);
     int i = 0, j = 0;
