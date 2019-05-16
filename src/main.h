@@ -12,7 +12,7 @@ typedef struct inject_options {
 } inject_options_t;
 
 
-void parser_args(int *argc, char ***argv, inject_options_t *opt);
+void parser_args(int argc, char **argv, inject_options_t *opt);
 void banner(void);
 void help(void);
 int inject_code(inject_options_t *opts);

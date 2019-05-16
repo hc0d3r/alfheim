@@ -9,29 +9,20 @@
 #include "mem.h"
 #include "inject.h"
 
+void parser_args(int argc, char **argv, inject_options_t *opt){
+    static const struct option options[]={
+        {"sc-file",           required_argument, NULL, 'f'},
+        {"sc-string",         required_argument, NULL, 's'},
+        {"no-restore",        no_argument,       NULL, 'n'},
+        {"ptrace",            no_argument,       NULL, 'p'},
+        {"restore-ip",        no_argument,       NULL, 'r'},
+        {NULL, 0, NULL, 0}
+    };
 
+    int index = 0, optc;
 
-
-static const char short_options[]= "f:s:npr";
-static const struct option long_options[]={
-    {"sc-file",           required_argument, NULL, 'f'},
-    {"sc-string",         required_argument, NULL, 's'},
-    {"no-restore",        no_argument,       NULL, 'n'},
-    {"ptrace",            no_argument,       NULL, 'p'},
-    {"restore-ip",        no_argument,       NULL, 'r'},
-    {NULL, 0, NULL, 0}
-};
-
-void parser_args(int *argc, char ***argv, inject_options_t *opt){
-
-    int optc;
-    int option_index = 0;
-
-    while((optc = getopt_long(*argc, *argv, short_options, long_options, &option_index))
-        != -1){
-
+    while((optc = getopt_long(argc, argv, "f:s:npr", options, &index)) != -1){
         switch(optc){
-
             case 'f':
                 opt->filename = optarg;
                 break;
@@ -55,18 +46,14 @@ void parser_args(int *argc, char ***argv, inject_options_t *opt){
 
             default:
                 help();
-
         }
-
-
     }
 
-    if(optind+1 != *argc){
+    if(optind+1 != argc){
         help();
     }
 
-    opt->options.pid = atoi((*argv)[optind]);
-
+    opt->options.pid = atoi(argv[optind]);
 }
 
 void banner(void){
@@ -126,7 +113,7 @@ int main(int argc, char **argv){
     inject_options_t options = inject_options_default;
 
     banner();
-    parser_args(&argc, &argv, &options);
+    parser_args(argc, argv, &options);
 
     return inject_code(&options);
 }
