@@ -9,9 +9,9 @@
 #define xfree(x) __safefree((void **)&x)
 
 typedef struct maped_file {
-	char *ptr;
-	off_t size;
-	int fd;
+    char *ptr;
+    off_t size;
+    int fd;
 } maped_file_t;
 
 void memorymap(const char *filename, maped_file_t *mfile);

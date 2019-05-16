@@ -6,9 +6,9 @@
 #define inject_options_default (inject_options_t){ NULL, NULL, ps_inject_default }
 
 typedef struct inject_options {
-	char *filename;
-	char *shellcode;
-	ps_inject_t options;
+    char *filename;
+    char *shellcode;
+    ps_inject_t options;
 } inject_options_t;
 
 

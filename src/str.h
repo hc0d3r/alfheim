@@ -9,8 +9,8 @@
 #define bytecode_string_default (bytecode_string_t){ NULL, 0 }
 
 typedef struct bytecode_string {
-	char *ptr;
-	size_t len;
+    char *ptr;
+    size_t len;
 } bytecode_string_t;
 
 
