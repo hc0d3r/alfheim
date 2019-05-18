@@ -27,6 +27,7 @@ void ps_inject(const char *sc, size_t len, ps_inject_t *options){
     char *backup = NULL;
     int status;
     long ip;
+    regs_t old_regs;
 
     ssize_t n;
 
@@ -34,7 +35,11 @@ void ps_inject(const char *sc, size_t len, ps_inject_t *options){
     ptrace_attach(options->pid);
     good("process attached\n");
 
-    ip = getip(options->pid);
+    ptrace(PTRACE_GETREGS, options->pid, NULL, &old_regs);
+
+    /* skip system call, e.g, select, poll, nanosleep */
+    ip = old_regs.instruction_point+4;
+    setip(options->pid, ip);
 
     if(options->restore){
         backup = xmalloc(len+BREAKPOINT_LEN);
@@ -61,7 +66,7 @@ void ps_inject(const char *sc, size_t len, ps_inject_t *options){
         free(backup);
 
         if(options->restore_ip){
-            setip(options->pid, ip);
+            ptrace(PTRACE_SETREGS, options->pid, NULL, &old_regs);
         }
 
         #if defined(__x86_64__) || defined(__i386__)
