@@ -24,9 +24,11 @@ inline long setip(pid_t pid, long ip){
 }
 
 void ps_inject(const char *sc, size_t len, ps_inject_t *options){
-    char *backup;
-    long ip;
+    char *backup = NULL;
     int status;
+    long ip;
+
+    ssize_t n;
 
     info("attaching process %d\n", options->pid);
     ptrace_attach(options->pid);
@@ -36,12 +38,14 @@ void ps_inject(const char *sc, size_t len, ps_inject_t *options){
 
     if(options->restore){
         backup = xmalloc(len+BREAKPOINT_LEN);
-        info("backup previously instructions\n");
-        readcallback(options->pid, backup, len+BREAKPOINT_LEN, ip);
+        info("backup previously instructions ...\n");
+        n = readcallback(options->pid, backup, len+BREAKPOINT_LEN, ip);
+        info("%zd byte(s) read of %zu\n", n, len+BREAKPOINT_LEN);
     }
 
-    info("writing shellcode on memory\n");
-    writecallback(options->pid, sc, len, ip);
+    info("writing shellcode on memory ...\n");
+    n = writecallback(options->pid, sc, len, ip);
+    info("%zd byte(s) written of %zu\n", n, len);
 
     good("shellcode inject !!!\n");
 
