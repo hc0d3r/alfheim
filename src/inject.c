@@ -67,13 +67,11 @@ void ps_inject(const char *sc, size_t len, ps_inject_t *options){
 
         if(options->restore_ip){
             ptrace(PTRACE_SETREGS, options->pid, NULL, &old_regs);
+        } else {
+            #if defined(__x86_64__) || defined(__i386__)
+                setip(options->pid, getip(options->pid)-BREAKPOINT_LEN);
+            #endif
         }
-
-        #if defined(__x86_64__) || defined(__i386__)
-        else {
-            setip(options->pid, getip(options->pid)-BREAKPOINT_LEN);
-        }
-        #endif
     }
 
     info("detaching pid ...\n");
