@@ -9,7 +9,7 @@
 #include "mem.h"
 #include "inject.h"
 
-void parser_args(int argc, char **argv, inject_options_t *opt){
+void parser_args(int argc, char **argv, options_t *opt){
     static const struct option options[]={
         {"sc-file",           required_argument, NULL, 'f'},
         {"sc-string",         required_argument, NULL, 's'},
@@ -81,7 +81,7 @@ void help(void){
     exit(0);
 }
 
-int inject_code(inject_options_t *opts){
+int inject_code(options_t *opts){
     map_t mfile;
     dynptr_t sc;
 
@@ -118,7 +118,7 @@ int inject_code(inject_options_t *opts){
 }
 
 int main(int argc, char **argv){
-    inject_options_t options = inject_options_default;
+    options_t options = default_options;
 
     banner();
     parser_args(argc, argv, &options);

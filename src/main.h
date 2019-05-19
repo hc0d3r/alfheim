@@ -3,17 +3,17 @@
 
 #include "inject.h"
 
-#define inject_options_default (inject_options_t){ NULL, NULL, ps_inject_default }
+#define default_options (options_t){ NULL, NULL, default_inject }
 
-typedef struct inject_options {
+typedef struct {
     char *filename;
     char *shellcode;
-    ps_inject_t options;
-} inject_options_t;
+    inject_t options;
+} options_t;
 
-void parser_args(int argc, char **argv, inject_options_t *opt);
+void parser_args(int argc, char **argv, options_t *opt);
 void banner(void);
 void help(void);
-int inject_code(inject_options_t *opts);
+int inject_code(options_t *opts);
 
 #endif

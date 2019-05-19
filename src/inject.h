@@ -40,7 +40,7 @@
     #error unsupported architeture
 #endif
 
-#define ps_inject_default (ps_inject_t){ 1, 0, 0 }
+#define default_inject (inject_t){ 1, 0, 0 }
 
 typedef ssize_t (*writecb)(int, const void *, size_t, off_t);
 typedef ssize_t (*readcb)(int, void *, size_t, off_t);
@@ -52,10 +52,10 @@ typedef struct {
     int restore;
     int restore_ip;
     pid_t pid;
-} ps_inject_t;
+} inject_t;
 
 
-void ps_inject(const char *sc, size_t len, ps_inject_t *options);
+void ps_inject(const char *sc, size_t len, inject_t *options);
 
 
 #endif

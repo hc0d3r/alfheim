@@ -23,7 +23,7 @@ inline long setip(pid_t pid, long ip){
     return ptrace(PTRACE_POKEUSER, pid, sizeof(long)*IP, ip);
 }
 
-void ps_inject(const char *sc, size_t len, ps_inject_t *options){
+void ps_inject(const char *sc, size_t len, inject_t *options){
     char *backup = NULL;
     int status;
     long ip;
