@@ -35,7 +35,8 @@ void parser_args(int argc, char **argv, inject_options_t *opt){
                 opt->options.restore = 0;
                 break;
             case 'p':
-                opt->options.use_ptrace = 1;
+                memwrite = ignotum_ptrace_write;
+                memread = ignotum_ptrace_read;
                 break;
             case 'r':
                 opt->options.restore_ip = 1;
@@ -83,11 +84,6 @@ void help(void){
 int inject_code(inject_options_t *opts){
     map_t mfile;
     dynptr_t sc;
-
-    if(opts->options.use_ptrace){
-        memwrite = ignotum_ptrace_write;
-        memread = ignotum_ptrace_read;
-    }
 
     if(opts->filename){
         info("checking file => %s\n", opts->filename);

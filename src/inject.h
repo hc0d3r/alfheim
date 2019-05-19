@@ -40,7 +40,7 @@
     #error unsupported architeture
 #endif
 
-#define ps_inject_default (ps_inject_t){ 1, 0, 0, 0 }
+#define ps_inject_default (ps_inject_t){ 1, 0, 0 }
 
 typedef ssize_t (*writecb)(int, const void *, size_t, off_t);
 typedef ssize_t (*readcb)(int, void *, size_t, off_t);
@@ -48,10 +48,8 @@ typedef ssize_t (*readcb)(int, void *, size_t, off_t);
 extern writecb memwrite;
 extern readcb memread;
 
-
 typedef struct {
     int restore;
-    int use_ptrace;
     int restore_ip;
     pid_t pid;
 } ps_inject_t;
