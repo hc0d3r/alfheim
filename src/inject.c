@@ -1,4 +1,8 @@
+#include <sys/wait.h>
+
 #include "inject.h"
+#include "common.h"
+#include "mem.h"
 
 writecb memwrite = ignotum_mem_write;
 readcb memread = ignotum_mem_read;

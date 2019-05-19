@@ -3,19 +3,12 @@
 
 #include <sys/ptrace.h>
 #include <sys/types.h>
-#include <sys/wait.h>
 #include <sys/user.h>
 
 #include <linux/ptrace.h>
 
 #include "ignotum_ptrace.h"
 #include "ignotum_mem.h"
-
-#include "common.h"
-#include "file.h"
-#include "mem.h"
-
-#define wordsize sizeof(long)
 
 #if defined (__x86_64__) || defined (__i386__)
     #include <sys/reg.h>
