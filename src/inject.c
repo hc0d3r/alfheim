@@ -1,7 +1,7 @@
 #include "inject.h"
 
-writecb writecallback = ignotum_mem_write;
-readcb readcallback = ignotum_mem_read;
+writecb memwrite = ignotum_mem_write;
+readcb memread = ignotum_mem_read;
 
 void ptrace_attach(pid_t pid){
     int status;
@@ -44,25 +44,25 @@ void ps_inject(const char *sc, size_t len, ps_inject_t *options){
     if(options->restore){
         backup = xmalloc(len+BREAKPOINT_LEN);
         info("backup previously instructions ...\n");
-        n = readcallback(options->pid, backup, len+BREAKPOINT_LEN, ip);
+        n = memread(options->pid, backup, len+BREAKPOINT_LEN, ip);
         info("%zd byte(s) read of %zu\n", n, len+BREAKPOINT_LEN);
     }
 
     info("writing shellcode on memory ...\n");
-    n = writecallback(options->pid, sc, len, ip);
+    n = memwrite(options->pid, sc, len, ip);
     info("%zd byte(s) written of %zu\n", n, len);
 
     good("shellcode inject !!!\n");
 
     if(options->restore){
         info("resuming application ...\n");
-        writecallback(options->pid, BREAKPOINT, BREAKPOINT_LEN, ip+len);
+        memwrite(options->pid, BREAKPOINT, BREAKPOINT_LEN, ip+len);
 
         ptrace(PTRACE_CONT, options->pid, NULL, 0);
         waitpid(options->pid, &status, 0);
 
         info("restoring memory instructions\n");
-        writecallback(options->pid, backup, len+BREAKPOINT_LEN, ip);
+        memwrite(options->pid, backup, len+BREAKPOINT_LEN, ip);
         free(backup);
 
         if(options->restore_ip){

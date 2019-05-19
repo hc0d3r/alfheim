@@ -85,8 +85,8 @@ int inject_code(inject_options_t *opts){
     dynptr_t sc;
 
     if(opts->options.use_ptrace){
-        writecallback = ignotum_ptrace_write;
-        readcallback = ignotum_ptrace_read;
+        memwrite = ignotum_ptrace_write;
+        memread = ignotum_ptrace_read;
     }
 
     if(opts->filename){

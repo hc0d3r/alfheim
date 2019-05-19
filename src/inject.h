@@ -45,8 +45,8 @@
 typedef ssize_t (*writecb)(int, const void *, size_t, off_t);
 typedef ssize_t (*readcb)(int, void *, size_t, off_t);
 
-extern writecb writecallback;
-extern readcb readcallback;
+extern writecb memwrite;
+extern readcb memread;
 
 
 typedef struct {
