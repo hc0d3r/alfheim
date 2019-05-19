@@ -50,7 +50,7 @@ void parser_args(int argc, char **argv, inject_options_t *opt){
         }
     }
 
-    if(optind+1 != argc){
+    if(optind+1 != argc || (!opt->filename && !opt->shellcode)){
         help();
     }
 
@@ -92,14 +92,25 @@ int inject_code(inject_options_t *opts){
             return 1;
         }
 
-        ps_inject(mfile.ptr, mfile.size, &(opts->options));
+        if(mfile.size){
+            ps_inject(mfile.ptr, mfile.size, &(opts->options));
+        } else {
+            bad("empty file !!!\n");
+        }
+
         freemap(&mfile);
     }
 
     if(opts->shellcode){
         info("checking shellcode string...\n");
         str2bytecode(opts->shellcode, &sc);
-        ps_inject(sc.ptr, sc.len, &(opts->options));
+
+        if(sc.len){
+            ps_inject(sc.ptr, sc.len, &(opts->options));
+        } else {
+            bad("empty shellcode !!!\n");
+        }
+
         free(sc.ptr);
     }
 
