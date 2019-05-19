@@ -81,7 +81,7 @@ void help(void){
 }
 
 int inject_code(inject_options_t *opts){
-    maped_file_t maped_file = maped_file_default;
+    map_t mfile;
     dynptr_t sc;
 
     if(opts->options.use_ptrace){
@@ -91,9 +91,13 @@ int inject_code(inject_options_t *opts){
 
     if(opts->filename){
         info("checking file => %s\n", opts->filename);
-        memorymap(opts->filename, &maped_file);
-        ps_inject(maped_file.ptr, maped_file.size, &(opts->options));
-        memorymapfree(&maped_file);
+        if(mapfile(opts->filename, &mfile)){
+            bad("failed to map file (%s) : %s\n", opts->filename, strerror(errno));
+            return 1;
+        }
+
+        ps_inject(mfile.ptr, mfile.size, &(opts->options));
+        freemap(&mfile);
     }
 
     if(opts->shellcode){

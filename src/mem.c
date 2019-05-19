@@ -1,35 +1,62 @@
+#include <sys/mman.h>
+#include <stdlib.h>
 #include "mem.h"
+#include "file.h"
 
-void memorymap(const char *filename, maped_file_t *mfile){
+enum {
+    map_mmap,
+    map_heap
+};
 
-    info("Opening file ...\n");
-    mfile->fd = xopen(filename, O_RDONLY);
-    good("file opened\n");
+int mapfile(const char *filename, map_t *out){
+    int fd, serr, ret = 1;
+    char buf[1024];
+    ssize_t n;
 
+    fd = open(filename, O_RDONLY);
+    if(fd == -1)
+        goto end;
 
-    info("getting file size ...\n");
-    mfile->size = getfdsize(mfile->fd);
-    good("file size: %zu\n", mfile->size);
+    out->size = getfdsize(fd);
+    out->ptr = mmap(NULL, (size_t)out->size, PROT_READ, MAP_PRIVATE, fd, 0);
+    if(out->ptr == MAP_FAILED){
+        out->ptr = NULL;
+        out->size = 0;
 
-    info("mapping file into memory ...\n");
-    mfile->ptr = mmap(NULL, (size_t)mfile->size, PROT_READ, MAP_PRIVATE, mfile->fd, 0);
+        while((n = read(fd, buf, sizeof(buf))) > 0){
+            out->ptr = realloc(out->ptr, n+out->size);
+            if(out->ptr == NULL){
+                break;
+            }
 
-    if(mfile->ptr == MAP_FAILED){
-        bad("mmap failed | %s\n", strerror(errno));
-        exit(1);
+            memcpy(out->ptr+out->size, buf, n);
+            out->size += (size_t)n;
+        }
+
+        out->type = map_heap;
     } else {
-        good("file sucessfull mapped at address %p\n", mfile->ptr);
+        out->type = map_mmap;
     }
 
+    if(out->ptr){
+        ret = 0;
+    }
+
+    /* save errno to error reporting */
+    serr = errno;
+    close(fd);
+    errno = serr;
+
+    end:
+    return ret;
 }
 
-void memorymapfree(maped_file_t *mfile){
-    munmap(mfile->ptr, mfile->size);
-    mfile->ptr = NULL;
-    mfile->size = 0;
+void freemap(map_t *map){
+    if(map->type == map_mmap)
+        munmap(map->ptr, map->size);
 
-    close(mfile->fd);
-    mfile->fd = 0;
+    else if(map->type == map_heap)
+        free(map->ptr);
 }
 
 void *xmalloc(size_t size){
