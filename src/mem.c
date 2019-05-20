@@ -3,11 +3,6 @@
 #include "mem.h"
 #include "file.h"
 
-enum {
-    map_mmap,
-    map_heap
-};
-
 int mapfile(const char *filename, map_t *out){
     int fd, serr, ret = 1;
     char buf[1024];

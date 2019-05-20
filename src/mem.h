@@ -1,6 +1,11 @@
 #ifndef __MEM_H__
 #define __MEM_H__
 
+enum {
+    map_mmap,
+    map_heap
+};
+
 typedef struct {
     char *ptr;
     off_t size;
