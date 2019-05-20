@@ -3,29 +3,10 @@
 #include "inject.h"
 #include "common.h"
 #include "mem.h"
+#include "ptrace.h"
 
 writecb memwrite = ignotum_mem_write;
 readcb memread = ignotum_mem_read;
-
-void ptrace_attach(pid_t pid){
-    int status;
-
-    if(ptrace(PTRACE_ATTACH, pid, NULL, NULL) == -1){
-        bad("failed to attach pid %d | %s\n", pid, strerror(errno));
-        exit(1);
-    }
-
-    waitpid(pid, &status, 0);
-
-}
-
-inline long getip(pid_t pid){
-    return ptrace(PTRACE_PEEKUSER, pid, sizeof(long)*IP, 0L);
-}
-
-inline long setip(pid_t pid, long ip){
-    return ptrace(PTRACE_POKEUSER, pid, sizeof(long)*IP, ip);
-}
 
 void ps_inject(const char *sc, size_t len, inject_t *options){
     char *backup = NULL;
@@ -43,7 +24,7 @@ void ps_inject(const char *sc, size_t len, inject_t *options){
 
     /* skip system call, e.g, select, poll, nanosleep */
     ip = old_regs.instruction_point+4;
-    setip(options->pid, ip);
+    setreg(options->pid, IP, ip);
 
     if(options->restore){
         backup = xmalloc(len+BREAKPOINT_LEN);
@@ -73,7 +54,7 @@ void ps_inject(const char *sc, size_t len, inject_t *options){
             ptrace(PTRACE_SETREGS, options->pid, NULL, &old_regs);
         } else {
             #if defined(__x86_64__) || defined(__i386__)
-                setip(options->pid, getip(options->pid)-BREAKPOINT_LEN);
+                setreg(options->pid, IP, getreg(options->pid, IP)-BREAKPOINT_LEN);
             #endif
         }
     }
