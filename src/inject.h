@@ -33,7 +33,7 @@
     #error unsupported architeture
 #endif
 
-#define default_inject (inject_t){ 1, 0, 0 }
+#define default_inject (inject_t){ 1, 1, 0 }
 
 typedef ssize_t (*writecb)(int, const void *, size_t, off_t);
 typedef ssize_t (*readcb)(int, void *, size_t, off_t);

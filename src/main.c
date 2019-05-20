@@ -15,13 +15,13 @@ void parser_args(int argc, char **argv, options_t *opt){
         {"sc-string",         required_argument, NULL, 's'},
         {"no-restore",        no_argument,       NULL, 'n'},
         {"ptrace",            no_argument,       NULL, 'p'},
-        {"restore-ip",        no_argument,       NULL, 'r'},
+        {"no-restore-ip",        no_argument,       NULL, 'N'},
         {NULL, 0, NULL, 0}
     };
 
     int index = 0, optc;
 
-    while((optc = getopt_long(argc, argv, "f:s:npr", options, &index)) != -1){
+    while((optc = getopt_long(argc, argv, "f:s:npN", options, &index)) != -1){
         switch(optc){
             case 'f':
                 opt->filename = optarg;
@@ -38,8 +38,8 @@ void parser_args(int argc, char **argv, options_t *opt){
                 memwrite = ignotum_ptrace_write;
                 memread = ignotum_ptrace_read;
                 break;
-            case 'r':
-                opt->options.restore_ip = 1;
+            case 'N':
+                opt->options.restore_ip = 0;
                 break;
 
             case '?':
@@ -73,8 +73,8 @@ void help(void){
         "Usage: ps-inject [OPTIONS] [PID]\n\n"
         "   -f, --sc-file FILE       File contains shellcode bytes\n"
         "   -s, --sc-string STRING   Shellcode string, e.g '\\x90\\x90\\x90'\n"
-        "   -n, --no-restore         Not restore memory overwrited by shellcode\n"
-        "   -r, --restore-ip         Restore instruction point\n"
+        "   -n, --no-restore         No restore memory overwrited by shellcode\n"
+        "   -N, --no-restore-ip      No restore instruction point\n"
         "   -p, --ptrace             Inject code using ptrace, instead of write in /proc/[pid]/mem\n";
 
     puts(help_menu);
