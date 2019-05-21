@@ -20,9 +20,11 @@
 #ifdef __x86_64__
     #define instruction_point rip
     #define IP RIP
+    #define ORIG_SYSNR ORIG_RAX
 #elif __i386__
     #define instruction_point eip
     #define IP EIP
+    #define ORIG_SYSNR ORIG_EAX
 #elif __arm__
     #define instruction_point regs.ARM_pc
     #define IP 15 /* PC register */

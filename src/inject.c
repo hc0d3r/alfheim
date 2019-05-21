@@ -23,9 +23,15 @@ void ps_inject(const char *sc, size_t len, inject_t *options){
 
     ptrace(PTRACE_GETREGS, options->pid, NULL, &old_regs);
 
+    ip = old_regs.instruction_point;
+
     /* skip system call, e.g, select, poll, nanosleep */
-    ip = old_regs.instruction_point+4;
-    setreg(options->pid, IP, ip);
+    #if defined (__x86_64__) || defined (__i386__)
+        setreg(options->pid, ORIG_SYSNR, -1);
+    #else
+        ip += 4;
+        setreg(options->pid, IP, ip);
+    #endif
 
     if(options->restore){
         backup = xmalloc(len+BREAKPOINT_LEN);
