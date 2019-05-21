@@ -10,7 +10,7 @@ readcb memread = ignotum_mem_read;
 
 void wait_breakpoint(pid_t pid, long addr);
 
-void ps_inject(const char *sc, size_t len, inject_t *options){
+void inject(const char *sc, size_t len, inject_t *options){
     char *backup = NULL;
     long ip, bp;
     regs_t old_regs;

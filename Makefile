@@ -9,7 +9,7 @@ FILES =	file.o str.o mem.o inject.o \
 
 OBJS = $(addprefix $(OBJDIR)/, $(FILES))
 
-ps-inject: $(OBJS)
+alfheim: $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $^
 
 

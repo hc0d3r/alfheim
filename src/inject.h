@@ -50,7 +50,7 @@ typedef struct {
 } inject_t;
 
 
-void ps_inject(const char *sc, size_t len, inject_t *options);
+void inject(const char *sc, size_t len, inject_t *options);
 
 
 #endif

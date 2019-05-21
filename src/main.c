@@ -57,20 +57,9 @@ void parser_args(int argc, char **argv, options_t *opt){
     opt->options.pid = atoi(argv[optind]);
 }
 
-void banner(void){
-    static const char ascii_banner[]=
-        " ____    ____     __  __ _    __  ____  ___  ____ \n"
-        "(  _ \\  / ___)   (  )(  ( \\ _(  )(  __)/ __)(_  _)\n"
-        " ) __/_ \\___ \\ _  )( /    // \\) \\ ) _)( (__   )(  \n"
-        "(__) (_)(____/(_)(__)\\_)__)\\____/(____)\\___) (__) \n";
-
-    puts(ascii_banner);
-
-}
-
 void help(void){
     static const char help_menu[]=
-        "Usage: ps-inject [OPTIONS] [PID]\n\n"
+        "Usage: alfheim [OPTIONS] [PID]\n\n"
         "   -f, --sc-file FILE       File contains shellcode bytes\n"
         "   -s, --sc-string STRING   Shellcode string, e.g '\\x90\\x90\\x90'\n"
         "   -n, --no-restore         No restore memory overwrited by shellcode\n"
@@ -93,7 +82,7 @@ int inject_code(options_t *opts){
         }
 
         if(mfile.size){
-            ps_inject(mfile.ptr, mfile.size, &(opts->options));
+            inject(mfile.ptr, mfile.size, &(opts->options));
         } else {
             bad("empty file !!!\n");
         }
@@ -106,7 +95,7 @@ int inject_code(options_t *opts){
         str2bytecode(opts->shellcode, &sc);
 
         if(sc.len){
-            ps_inject(sc.ptr, sc.len, &(opts->options));
+            inject(sc.ptr, sc.len, &(opts->options));
         } else {
             bad("empty shellcode !!!\n");
         }
@@ -120,7 +109,6 @@ int inject_code(options_t *opts){
 int main(int argc, char **argv){
     options_t options = default_options;
 
-    banner();
     parser_args(argc, argv, &options);
 
     return inject_code(&options);
