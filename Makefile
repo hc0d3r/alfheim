@@ -3,17 +3,14 @@ SRCDIR=src
 OBJDIR=lib
 
 
-OBJS =		$(OBJDIR)/file.o \
-		$(OBJDIR)/str.o \
-		$(OBJDIR)/mem.o \
-		$(OBJDIR)/inject.o \
-		$(OBJDIR)/ignotum_ptrace.o \
-		$(OBJDIR)/ignotum_mem.o \
-		$(OBJDIR)/ptrace.o \
-		$(OBJDIR)/main.o
+FILES =	file.o str.o mem.o inject.o \
+	ignotum_ptrace.o ignotum_mem.o ptrace.o \
+	main.o
+
+OBJS = $(addprefix $(OBJDIR)/, $(FILES))
 
 ps-inject: $(OBJS)
-	$(CC) $(CFLAGS) -o ps-inject $(OBJS)
+	$(CC) $(CFLAGS) -o $@ $^
 
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c $(SRCDIR)/%.h
