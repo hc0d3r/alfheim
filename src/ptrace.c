@@ -22,3 +22,11 @@ long getreg(pid_t pid, int reg){
 long setreg(pid_t pid, int reg, long ip){
     return ptrace(PTRACE_POKEUSER, pid, sizeof(long)*reg, ip);
 }
+
+long ptrace_getregs(pid_t pid, void *regs){
+    return ptrace(PTRACE_GETREGS, pid, NULL, regs);
+}
+
+long ptrace_setregs(pid_t pid, const void *regs){
+    return ptrace(PTRACE_SETREGS, pid, NULL, regs);
+}

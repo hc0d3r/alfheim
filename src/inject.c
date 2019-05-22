@@ -24,7 +24,7 @@ void inject(const char *sc, size_t len, inject_t *options){
     ptrace_attach(pid);
     good("process attached\n");
 
-    ptrace(PTRACE_GETREGS, pid, NULL, &old_regs);
+    ptrace_getregs(pid, &old_regs);
 
     ip = old_regs.instruction_point;
 
@@ -77,7 +77,7 @@ void inject(const char *sc, size_t len, inject_t *options){
                 info("setting instruction point to 0x%lx\n", bp);
             #endif
         } else {
-            ptrace(PTRACE_SETREGS, pid, NULL, &old_regs);
+            ptrace_setregs(pid, &old_regs);
         }
 
     }
