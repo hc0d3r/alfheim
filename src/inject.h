@@ -35,18 +35,19 @@
     #error unsupported architeture
 #endif
 
-#define default_inject (inject_t){ 1, 1, 0 }
-
 typedef ssize_t (*writecb)(int, const void *, size_t, off_t);
 typedef ssize_t (*readcb)(int, void *, size_t, off_t);
 
 extern writecb memwrite;
 extern readcb memread;
 
+#define default_inject (inject_t){ 1, 1, 0, 0 }
+
 typedef struct {
     int restore;
     int restore_ip;
     pid_t pid;
+    long address;
 } inject_t;
 
 

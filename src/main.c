@@ -14,6 +14,7 @@ void parser_args(int argc, char **argv, options_t *opt){
         {"shellcode",         required_argument, NULL, 's'},
         {"file",              required_argument, NULL, 'f'},
         {"format",            required_argument, NULL, 'F'},
+        {"address",           required_argument, NULL,   0},
         {"no-restore-memory", no_argument,       NULL,   0},
         {"no-restore-ip",     no_argument,       NULL,   0},
         {"ptrace",            no_argument,       NULL,   0},
@@ -28,6 +29,10 @@ void parser_args(int argc, char **argv, options_t *opt){
         switch(optc){
             case 0:
                 name = options[index].name;
+                if(!strcmp(name, "address")){
+                    opt->options.address = strtol(optarg, NULL, 16);
+                }
+
                 if(!strcmp(name, "no-restore-memory")){
                     opt->options.restore = 0;
                 }
@@ -55,7 +60,7 @@ void parser_args(int argc, char **argv, options_t *opt){
                 if(!strcmp(optarg, "ascii"))
                     opt->format = 1;
                 else if(strcmp(optarg, "bin")){
-                    printf("%s is not a valide format\n", optarg);
+                    printf("%s is not a valid format\n", optarg);
                     exit(1);
                 }
 
@@ -89,6 +94,8 @@ void help(void){
         "                            '0x90, 0x90', '\\x90\\x90\\x90'\n"
         "  -f, --file FILE          file with shellcode\n"
         "  -F, --format STRING      file format, bin or ascii (Default: bin)\n"
+        "  --address HEX-ADDR       write shellcode to specific address\n"
+        "                            (Default: current instruction point)\n"
         "\n"
         "  --no-restore-memory      no restore memory after shellcode execution\n"
         "  --no-restore-ip          no restore instruction point after shellcode execution\n\n"

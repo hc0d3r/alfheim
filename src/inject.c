@@ -12,7 +12,7 @@ void wait_breakpoint(pid_t pid, long addr);
 
 void inject(const char *sc, size_t len, inject_t *options){
     char *backup = NULL;
-    long ip, bp;
+    long ip, bp, addr;
     regs_t regs;
 
     ssize_t n;
@@ -27,16 +27,21 @@ void inject(const char *sc, size_t len, inject_t *options){
     ptrace_getregs(pid, &regs);
 
     ip = regs.instruction_point;
+    if(options->address){
+        addr = options->address;
+    } else {
+        addr = ip;
+    }
 
     if(options->restore){
         backup = xmalloc(len+BREAKPOINT_LEN);
         info("backup previously instructions ...\n");
-        n = memread(pid, backup, len+BREAKPOINT_LEN, ip);
+        n = memread(pid, backup, len+BREAKPOINT_LEN, addr);
         info("%zd byte(s) read of %zu\n", n, len+BREAKPOINT_LEN);
     }
 
-    info("writing shellcode at address 0x%lx ...\n", ip);
-    n = memwrite(pid, sc, len, ip);
+    info("writing shellcode at address 0x%lx ...\n", addr);
+    n = memwrite(pid, sc, len, addr);
     info("%zd byte(s) written of %zu\n", n, len);
 
     good("shellcode written !!!\n");
@@ -44,15 +49,17 @@ void inject(const char *sc, size_t len, inject_t *options){
     /* skip system call, e.g, select, poll, nanosleep */
     #if defined (__x86_64__) || defined (__i386__)
         setreg(pid, ORIG_SYSNR, -1);
+        setreg(pid, IP, addr);
     #else
-        ip += 4;
-        setreg(pid, IP, ip);
+        //ip += 4;
+        setreg(pid, IP, addr);
     #endif
+
 
     if(!options->restore)
         goto end;
 
-    bp = ip+len;
+    bp = addr+len;
 
     info("setting a breakpoint at 0x%lx ...\n", bp);
     if(memwrite(pid, BREAKPOINT, BREAKPOINT_LEN, bp) == BREAKPOINT_LEN){
@@ -65,7 +72,7 @@ void inject(const char *sc, size_t len, inject_t *options){
     wait_breakpoint(pid, bp);
 
     info("restoring memory instructions\n");
-    if((size_t)memwrite(pid, backup, len+BREAKPOINT_LEN, ip) == len+BREAKPOINT_LEN){
+    if((size_t)memwrite(pid, backup, len+BREAKPOINT_LEN, addr) == len+BREAKPOINT_LEN){
         good("memory restored\n");
     } else {
         bad("failed to restore the memory\n");
