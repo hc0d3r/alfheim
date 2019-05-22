@@ -13,7 +13,7 @@ void wait_breakpoint(pid_t pid, long addr);
 void inject(const char *sc, size_t len, inject_t *options){
     char *backup = NULL;
     long ip, bp;
-    regs_t old_regs;
+    regs_t regs;
 
     ssize_t n;
     pid_t pid;
@@ -24,17 +24,9 @@ void inject(const char *sc, size_t len, inject_t *options){
     ptrace_attach(pid);
     good("process attached\n");
 
-    ptrace_getregs(pid, &old_regs);
+    ptrace_getregs(pid, &regs);
 
-    ip = old_regs.instruction_point;
-
-    /* skip system call, e.g, select, poll, nanosleep */
-    #if defined (__x86_64__) || defined (__i386__)
-        setreg(pid, ORIG_SYSNR, -1);
-    #else
-        ip += 4;
-        setreg(pid, IP, ip);
-    #endif
+    ip = regs.instruction_point;
 
     if(options->restore){
         backup = xmalloc(len+BREAKPOINT_LEN);
@@ -47,41 +39,50 @@ void inject(const char *sc, size_t len, inject_t *options){
     n = memwrite(pid, sc, len, ip);
     info("%zd byte(s) written of %zu\n", n, len);
 
-    good("shellcode inject !!!\n");
+    good("shellcode written !!!\n");
 
-    if(options->restore){
-        bp = ip+len;
-        info("setting a breakpoint at 0x%lx ...\n", bp);
-        if(memwrite(pid, BREAKPOINT, BREAKPOINT_LEN, bp) == BREAKPOINT_LEN){
-            good("breakpoint set\n");
-        } else {
-            bad("failed to write breakpoint\n");
-        }
+    /* skip system call, e.g, select, poll, nanosleep */
+    #if defined (__x86_64__) || defined (__i386__)
+        setreg(pid, ORIG_SYSNR, -1);
+    #else
+        ip += 4;
+        setreg(pid, IP, ip);
+    #endif
 
-        info("executing shellcode ...\n");
+    if(!options->restore)
+        goto end;
 
-        wait_breakpoint(pid, bp);
+    bp = ip+len;
 
-        info("restoring memory instructions\n");
-        if((size_t)memwrite(pid, backup, len+BREAKPOINT_LEN, ip) == len+BREAKPOINT_LEN){
-            good("memory restored\n");
-        } else {
-            bad("failed to restore the memory\n");
-        }
-
-        free(backup);
-
-        if(!options->restore_ip){
-            #if defined(__x86_64__) || defined(__i386__)
-                setreg(pid, IP, bp);
-                info("setting instruction point to 0x%lx\n", bp);
-            #endif
-        } else {
-            ptrace_setregs(pid, &old_regs);
-        }
-
+    info("setting a breakpoint at 0x%lx ...\n", bp);
+    if(memwrite(pid, BREAKPOINT, BREAKPOINT_LEN, bp) == BREAKPOINT_LEN){
+        good("breakpoint set\n");
+    } else {
+        bad("failed to write breakpoint\n");
     }
 
+    info("executing shellcode ...\n");
+    wait_breakpoint(pid, bp);
+
+    info("restoring memory instructions\n");
+    if((size_t)memwrite(pid, backup, len+BREAKPOINT_LEN, ip) == len+BREAKPOINT_LEN){
+        good("memory restored\n");
+    } else {
+        bad("failed to restore the memory\n");
+    }
+
+    free(backup);
+
+    if(!options->restore_ip){
+        #if defined(__x86_64__) || defined(__i386__)
+            setreg(pid, IP, bp);
+            info("setting instruction point to 0x%lx\n", bp);
+        #endif
+    } else {
+        ptrace_setregs(pid, &regs);
+    }
+
+    end:
     info("detaching pid ...\n");
     ptrace(PTRACE_DETACH, pid, NULL, 0);
 }
