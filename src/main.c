@@ -13,6 +13,7 @@ void parser_args(int argc, char **argv, options_t *opt){
     static const struct option options[]={
         {"shellcode",         required_argument, NULL, 's'},
         {"file",              required_argument, NULL, 'f'},
+        {"format",            required_argument, NULL, 'F'},
         {"no-restore-memory", no_argument,       NULL,   0},
         {"no-restore-ip",     no_argument,       NULL,   0},
         {"ptrace",            no_argument,       NULL,   0},
@@ -23,7 +24,7 @@ void parser_args(int argc, char **argv, options_t *opt){
     int index = 0, optc;
     const char *name;
 
-    while((optc = getopt_long(argc, argv, "s:f:h", options, &index)) != -1){
+    while((optc = getopt_long(argc, argv, "s:f:F:h", options, &index)) != -1){
         switch(optc){
             case 0:
                 name = options[index].name;
@@ -48,6 +49,16 @@ void parser_args(int argc, char **argv, options_t *opt){
 
             case 'f':
                 opt->filename = optarg;
+                break;
+
+            case 'F':
+                if(!strcmp(optarg, "ascii"))
+                    opt->format = 1;
+                else if(strcmp(optarg, "bin")){
+                    printf("%s is not a valide format\n", optarg);
+                    exit(1);
+                }
+
                 break;
 
             case 'h':
@@ -76,8 +87,9 @@ void help(void){
         "Options:\n"
         "  -s, --shellcode STRING   string with shellcode, e.g, '90 90 90',\n"
         "                            '0x90, 0x90', '\\x90\\x90\\x90'\n"
-        "  -f, --file FILE          file with shellcode\n\n"
-
+        "  -f, --file FILE          file with shellcode\n"
+        "  -F, --format STRING      file format, bin or ascii (Default: bin)\n"
+        "\n"
         "  --no-restore-memory      no restore memory after shellcode execution\n"
         "  --no-restore-ip          no restore instruction point after shellcode execution\n\n"
 
@@ -91,6 +103,10 @@ int inject_code(options_t *opts){
     map_t mfile;
     dynptr_t sc;
 
+    void *tmp;
+    size_t len;
+
+
     if(opts->filename){
         info("checking file => %s\n", opts->filename);
         if(mapfile(opts->filename, &mfile)){
@@ -98,8 +114,19 @@ int inject_code(options_t *opts){
             return 1;
         }
 
-        if(mfile.size){
-            inject(mfile.ptr, mfile.size, &(opts->options));
+        if(opts->format){
+            str2bytecode(mfile.ptr, mfile.size, &sc);
+            tmp = sc.ptr;
+            len = sc.len;
+        } else {
+            tmp = mfile.ptr;
+            len = mfile.size;
+        }
+
+        if(len){
+            inject(tmp, len, &(opts->options));
+            if(opts->format)
+                free(sc.ptr);
         } else {
             bad("empty file !!!\n");
         }
@@ -109,7 +136,7 @@ int inject_code(options_t *opts){
 
     if(opts->shellcode){
         info("checking shellcode string...\n");
-        str2bytecode(opts->shellcode, &sc);
+        str2bytecode(opts->shellcode, strlen(opts->shellcode), &sc);
 
         if(sc.len){
             inject(sc.ptr, sc.len, &(opts->options));

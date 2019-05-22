@@ -3,11 +3,12 @@
 
 #include "inject.h"
 
-#define default_options (options_t){ NULL, NULL, default_inject }
+#define default_options (options_t){ NULL, NULL, 0, default_inject }
 
 typedef struct {
     char *filename;
     char *shellcode;
+    int format;
     inject_t options;
 } options_t;
 
