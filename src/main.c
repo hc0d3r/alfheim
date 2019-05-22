@@ -16,13 +16,14 @@ void parser_args(int argc, char **argv, options_t *opt){
         {"no-restore-memory", no_argument,       NULL,   0},
         {"no-restore-ip",     no_argument,       NULL,   0},
         {"ptrace",            no_argument,       NULL,   0},
+        {"help",              no_argument,       NULL, 'h'},
         {NULL, 0, NULL, 0}
     };
 
     int index = 0, optc;
     const char *name;
 
-    while((optc = getopt_long(argc, argv, "s:f:", options, &index)) != -1){
+    while((optc = getopt_long(argc, argv, "s:f:h", options, &index)) != -1){
         switch(optc){
             case 0:
                 name = options[index].name;
@@ -49,6 +50,10 @@ void parser_args(int argc, char **argv, options_t *opt){
                 opt->filename = optarg;
                 break;
 
+            case 'h':
+                help();
+                break;
+
             case '?':
                 exit(1);
 
@@ -58,7 +63,8 @@ void parser_args(int argc, char **argv, options_t *opt){
     }
 
     if(optind+1 != argc || (!opt->filename && !opt->shellcode)){
-        help();
+        printf("alfheim: try 'alfheim --help' for more information\n");
+        exit(0);
     }
 
     opt->options.pid = atoi(argv[optind]);
