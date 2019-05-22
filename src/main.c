@@ -100,7 +100,9 @@ void help(void){
         "  --no-restore-memory      no restore memory after shellcode execution\n"
         "  --no-restore-ip          no restore instruction point after shellcode execution\n\n"
 
-        "  --ptrace                 write/read the memory using ptrace instead of /proc/[pid]/mem";
+        "  --ptrace                 write/read the memory using ptrace instead of /proc/[pid]/mem\n"
+        "\n"
+        "  -h, --help               display this help menu";
 
     puts(help_menu);
     exit(0);
