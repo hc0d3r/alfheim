@@ -110,7 +110,7 @@ void wait_breakpoint(pid_t pid, long addr){
             #endif
 
             if(ip == addr){
-                good("breakpoint rechead !!!\n");
+                good("breakpoint reached !!!\n");
                 break;
             } else {
                 sig = WSTOPSIG(status);
