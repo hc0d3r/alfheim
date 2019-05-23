@@ -48,11 +48,11 @@ void inject(const char *sc, size_t len, inject_t *options){
 
     /* skip system call, e.g, select, poll, nanosleep */
     #if defined (__x86_64__) || defined (__i386__)
-        setreg(pid, ORIG_SYSNR, -1);
-        setreg(pid, IP, addr);
+        ptrace_setreg(pid, ORIG_SYSNR, -1);
+        ptrace_setreg(pid, IP, addr);
     #else
         //ip += 4;
-        setreg(pid, IP, addr);
+        ptrace_setreg(pid, IP, addr);
     #endif
 
 
@@ -82,7 +82,7 @@ void inject(const char *sc, size_t len, inject_t *options){
 
     if(!options->restore_ip){
         #if defined(__x86_64__) || defined(__i386__)
-            setreg(pid, IP, bp);
+            ptrace_setreg(pid, IP, bp);
             info("setting instruction point to 0x%lx\n", bp);
         #endif
     } else {
@@ -115,7 +115,7 @@ void wait_breakpoint(pid_t pid, long addr){
         }
 
         if(WIFSTOPPED(status)){
-            ip = getreg(pid, IP);
+            ip = ptrace_getreg(pid, IP);
             #if defined(__x86_64__) || defined(__i386__)
                 ip--;
             #endif

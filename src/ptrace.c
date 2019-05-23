@@ -15,11 +15,11 @@ void ptrace_attach(pid_t pid){
     waitpid(pid, &status, 0);
 }
 
-long getreg(pid_t pid, int reg){
+long ptrace_getreg(pid_t pid, int reg){
     return ptrace(PTRACE_PEEKUSER, pid, sizeof(long)*reg, 0L);
 }
 
-long setreg(pid_t pid, int reg, long ip){
+long ptrace_setreg(pid_t pid, int reg, long ip){
     return ptrace(PTRACE_POKEUSER, pid, sizeof(long)*reg, ip);
 }
 
