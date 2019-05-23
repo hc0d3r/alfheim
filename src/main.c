@@ -8,6 +8,7 @@
 #include "str.h"
 #include "mem.h"
 #include "inject.h"
+#include "remote_write.h"
 
 void parser_args(int argc, char **argv, options_t *opt){
     static const struct option options[]={
@@ -15,6 +16,7 @@ void parser_args(int argc, char **argv, options_t *opt){
         {"file",              required_argument, NULL, 'f'},
         {"format",            required_argument, NULL, 'F'},
         {"address",           required_argument, NULL,   0},
+        {"write",             no_argument,       NULL, 'w'},
         {"no-restore-memory", no_argument,       NULL,   0},
         {"no-restore-ip",     no_argument,       NULL,   0},
         {"ptrace",            no_argument,       NULL,   0},
@@ -25,7 +27,7 @@ void parser_args(int argc, char **argv, options_t *opt){
     int index = 0, optc;
     const char *name;
 
-    while((optc = getopt_long(argc, argv, "s:f:F:h", options, &index)) != -1){
+    while((optc = getopt_long(argc, argv, "s:f:F:wh", options, &index)) != -1){
         switch(optc){
             case 0:
                 name = options[index].name;
@@ -66,6 +68,10 @@ void parser_args(int argc, char **argv, options_t *opt){
 
                 break;
 
+            case 'w':
+                opt->write = 1;
+                break;
+
             case 'h':
                 help();
                 break;
@@ -97,6 +103,7 @@ void help(void){
         "  --address HEX-ADDR       write shellcode to specific address\n"
         "                            (Default: current instruction point)\n"
         "\n"
+        "  -w, --write              write shellcode to address and exit\n"
         "  --no-restore-memory      no restore memory after shellcode execution\n"
         "  --no-restore-ip          no restore instruction point after shellcode execution\n\n"
 
@@ -133,7 +140,11 @@ int inject_code(options_t *opts){
         }
 
         if(len){
-            inject(tmp, len, &(opts->options));
+            if(opts->write)
+                remote_write(opts->options.pid, tmp, len, opts->options.address);
+            else
+                inject(tmp, len, &(opts->options));
+
             if(opts->format)
                 free(sc.ptr);
         } else {
@@ -148,7 +159,10 @@ int inject_code(options_t *opts){
         str2bytecode(opts->shellcode, strlen(opts->shellcode), &sc);
 
         if(sc.len){
-            inject(sc.ptr, sc.len, &(opts->options));
+            if(opts->write)
+                remote_write(opts->options.pid, sc.ptr, sc.len, opts->options.address);
+            else
+                inject(sc.ptr, sc.len, &(opts->options));
         } else {
             bad("empty shellcode !!!\n");
         }

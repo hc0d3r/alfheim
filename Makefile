@@ -5,7 +5,7 @@ OBJDIR=lib
 
 FILES =	file.o str.o mem.o inject.o \
 	ignotum_ptrace.o ignotum_mem.o ptrace.o \
-	main.o
+	remote_write.o main.o
 
 OBJS = $(addprefix $(OBJDIR)/, $(FILES))
 
