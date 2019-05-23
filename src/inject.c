@@ -47,7 +47,7 @@ void inject(const char *sc, size_t len, inject_t *options){
     good("shellcode written !!!\n");
 
     /* skip system call, e.g, select, poll, nanosleep */
-    #if defined (__x86_64__) || defined (__i386__)
+    #ifdef intel
         ptrace_setreg(pid, ORIG_SYSNR, -1);
         ptrace_setreg(pid, IP, addr);
     #else
@@ -81,7 +81,7 @@ void inject(const char *sc, size_t len, inject_t *options){
     free(backup);
 
     if(!options->restore_ip){
-        #if defined(__x86_64__) || defined(__i386__)
+        #ifdef intel
             ptrace_setreg(pid, IP, bp);
             info("setting instruction point to 0x%lx\n", bp);
         #endif

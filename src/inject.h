@@ -12,6 +12,7 @@
 
 #if defined (__x86_64__) || defined (__i386__)
     #include <sys/reg.h>
+    #define intel
     #define BREAKPOINT "\xcc"
     #define BREAKPOINT_LEN 1
     typedef struct user_regs_struct regs_t;
