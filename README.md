@@ -19,13 +19,22 @@ cc -Wall -Wextra -O3 -c -o lib/ignotum_mem.o src/ignotum_mem.c
 cc -Wall -Wextra -O3 -c -o lib/ptrace.o src/ptrace.c
 cc -Wall -Wextra -O3 -c -o lib/main.o src/main.c
 cc -Wall -Wextra -O3 -o alfheim lib/file.o lib/str.o lib/mem.o lib/inject.o lib/ignotum_ptrace.o lib/ignotum_mem.o lib/ptrace.o lib/main.o
-$ ./alfheim
+$ ./alfheim -h
 Usage: alfheim [OPTIONS] [PID]
 
-   -f, --sc-file FILE       File contains shellcode bytes
-   -s, --sc-string STRING   Shellcode string, e.g '\x90\x90\x90'
-   -n, --no-restore         No restore memory overwrited by shellcode
-   -N, --no-restore-ip      No restore instruction point
-   -p, --ptrace             Inject code using ptrace, instead of write in /proc/[pid]/mem
+Options:
+  -s, --shellcode STRING   string with shellcode, e.g, '90 90 90',
+                            '0x90, 0x90', '\x90\x90\x90'
+  -f, --file FILE          file with shellcode
+  -F, --format STRING      file format, bin or ascii (Default: bin)
+  --address HEX-ADDR       write shellcode to specific address
+                            (Default: current instruction point)
 
+  -w, --write              write shellcode to address and exit
+  --no-restore-memory      no restore memory after shellcode execution
+  --no-restore-ip          no restore instruction point after shellcode execution
+
+  --ptrace                 write/read the memory using ptrace instead of /proc/[pid]/mem
+
+  -h, --help               display this help menu
 ```
